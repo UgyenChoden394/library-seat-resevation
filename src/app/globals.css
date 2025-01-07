@@ -4,13 +4,13 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0a0909;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #ffffff;
+    --foreground: #101010;
   }
 }
 
@@ -22,4 +22,21 @@ body {
 
 input {
   @apply w-full px-4 py-2 border rounded-lg text-gray-700 placeholder-gray-400 focus-visible:outline-0 focus:ring-1 focus:ring-blue-200;
+}
+
+/* Side Bar style  */
+.sidebar.collapsed {
+  width: 80px;
+}
+
+.sidebar.collapsed .sidebar-header {
+  display: none;
+}
+
+.sidebar.collapsed .sidebar-content span {
+  display: none;
+}
+
+.sidebar.collapsed svg {
+  margin: auto;
 }

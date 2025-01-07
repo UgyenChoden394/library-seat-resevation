@@ -4,15 +4,16 @@ import { useCreateUserWithEmailAndPassword } from "react-firebase-hooks/auth";
 import { auth, db } from "@/app/firebase/config";
 import { doc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
+import Loader from '@/components/loader';
 
 const SignUp = () => {
   const [email, setEmail] = useState("");
   const [student_id, setStudentId] = useState("");
   const [password, setPassword] = useState("");
-  const [createUserWithEmailAndPassword] =
+  const [createUserWithEmailAndPassword, user, loading, error] =
     useCreateUserWithEmailAndPassword(auth);
   const [isFormValid, setIsFormValid] = useState(false);
-  const [error, setError] = useState("");
+  const [err, setError] = useState("");
   const [touched, setTouched] = useState({
     email: false,
     student_id: false,
@@ -44,20 +45,16 @@ const SignUp = () => {
       return;
     }
     try {
-
-      const userCredential = await createUserWithEmailAndPassword(email, password);
+      const userCredential = await createUserWithEmailAndPassword(email, password); 
       const role = 'student'; // Default role for a new user
-      const userDocRef = doc(db, 'user', student_id);
+      const userDocRef = doc(db, 'user', userCredential?.user?.uid as any);
       await setDoc(userDocRef, { student_id, email, role });
-      sessionStorage.setItem("user", "true");
+      sessionStorage.setItem("user", JSON.stringify(userCredential?.user));
+      userCredential?.user && router.push('/auth/login');
+    } catch (e) { 
       setEmail('');
       setStudentId('');
       setPassword('');
-      setError('');
-
-      router.push('/auth/login');
-    } catch (e) {
-      console.log(e);
       setError("Registration failed. Try again.");
     }
   };
@@ -70,7 +67,6 @@ const SignUp = () => {
     setEmail(e.target.value);
     setError(""); // Clear error on input
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white w-full max-w-md p-8 rounded-lg shadow-md">
@@ -134,7 +130,7 @@ const SignUp = () => {
         <button
           onClick={handleSignUp}
           disabled={!isFormValid}
-          className={`w-full mt-4 px-4 py-2 rounded-lg transition ${
+          className={`w-full mt-4 px-4 py-2 rounded-full transition ${
             isFormValid
               ? "bg-blue-600 text-white hover:bg-blue-500"
               : "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -142,7 +138,9 @@ const SignUp = () => {
         >
           Register
         </button>
-        {error && <p className="text-red-500 text-sm mt-4 text-center">{error}</p>}
+        {loading && <Loader></Loader>}
+        {error && <p className="text-red-500 text-sm mt-4 text-center">{error.code === 'auth/email-already-in-use' ? 'The email is already in use' : error.message}</p>}
+        {err && <p className="text-red-500 text-sm mt-2 text-center">{err}</p>}
         <div className="mt-4 text-center">
           <p className="text-sm text-gray-600">
             Already have an account?{" "}

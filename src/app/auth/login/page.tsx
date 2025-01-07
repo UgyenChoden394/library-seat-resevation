@@ -3,19 +3,18 @@ import { useEffect, useState } from "react";
 import { useSignInWithEmailAndPassword } from "react-firebase-hooks/auth";
 import { auth } from "@/app/firebase/config";
 import { useRouter } from "next/navigation";
+import Loader from '@/components/loader';
 
 const LogIn = () => {
   const [studentId, setStudentId] = useState("");
   const [password, setPassword] = useState("");
-  // const [student_id, setStudentId] = useState("");
-  const [loginInWithEmailAndPassword] = useSignInWithEmailAndPassword(auth);
+  const [loginInWithEmailAndPassword, user, loading, error] = useSignInWithEmailAndPassword(auth);
   const router = useRouter();
   const [isFormValid, setIsFormValid] = useState(false);
   const [errorMessage, setErrorMessage] = useState(""); // Error message state
 
   const [touched, setTouched] = useState({
-    email: false,
-    // student_id: false,
+    student_id: false,
     password: false,
   });
 
@@ -32,36 +31,26 @@ const LogIn = () => {
     try {
       const email = `${studentId}.jnec@rub.edu.bt`;
       const res = await loginInWithEmailAndPassword(email, password);
-      debugger;
+      debugger
       if (res?.user) {
-        // Login successful
+        // Login successful logic
         setErrorMessage("");
         console.log({ res });
-        sessionStorage.setItem("user", "true");
+        sessionStorage.setItem("user", JSON.stringify(res?.user));
+        router.push("/dashboard");
+      } else {
         setStudentId("");
         setPassword("");
-        router.push("/");
-      } else {
-        setErrorMessage("Somthing went wrong. Please try again.");
       }
     } catch (e: any) { 
       setErrorMessage("An unknown error occurred. Please try again.");
-
-      // console.error('error: ',e.code.errors);
-      // if (e.code === 'auth/user-not-found') {
-      //   setErrorMessage("This email is not registered.");
-      // } else if (e.code === 'auth/wrong-password') {
-      //   setErrorMessage("The password is incorrect.");
-      // } else if (e.code === 'auth/invalid-email') {
-      //   setErrorMessage("The email format is invalid.");
-      // } else {
-      //   setErrorMessage("An unknown error occurred. Please try again.");
-      // }
+      console.error('error: ',e.code.errors);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      {loading && <Loader />}
       <div className="bg-white w-full max-w-md p-8 rounded-lg shadow-md">
         <div className="flex flex-col items-center mb-6">
           <img className="w-22 h-20 mb-2" src="/logo.png" alt="Logo" />
@@ -79,11 +68,11 @@ const LogIn = () => {
               onChange={(e) => setStudentId(e.target.value)}
               onFocus={() => handleFocus("email")}
               className={`${
-                touched.email && studentId.trim() === "" ? "border-red-500" : ""
+                touched.student_id && studentId.trim() === "" ? "border-red-500" : ""
               }
                 `}
             />
-            {touched.email && studentId.trim() === "" && (
+            {touched.student_id && studentId.trim() === "" && (
               <p className="mr-2 text-red-500 text-sm ml-[14px]">
                 This field is required
               </p>
@@ -113,11 +102,14 @@ const LogIn = () => {
           {errorMessage && (
             <p className="text-red-500 text-sm text-center mt-2">{errorMessage}</p>
           )}
+           {error && (
+            <p className="text-red-500 text-sm text-center mt-2">{error.code === 'auth/invalid-credential' ? 'Invalid Credential! Please try again.' : ''}</p>
+          )}
         </div>
         <button
           onClick={handleLogIn}
           disabled={!isFormValid}
-          className={`w-full mt-4 px-4 py-2 rounded-lg transition ${
+          className={`w-full mt-4 px-4 py-2 rounded-full transition ${
             isFormValid
               ? "bg-blue-600 text-white hover:bg-blue-500"
               : "bg-gray-300 text-gray-500 cursor-not-allowed"

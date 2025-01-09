@@ -4,6 +4,7 @@ import { useSignInWithEmailAndPassword } from "react-firebase-hooks/auth";
 import { auth } from "@/app/firebase/config";
 import { useRouter } from "next/navigation";
 import Loader from '@/components/loader';
+import toast from 'react-hot-toast';
 
 const LogIn = () => {
   const [studentId, setStudentId] = useState("");
@@ -31,12 +32,12 @@ const LogIn = () => {
     try {
       const email = `${studentId}.jnec@rub.edu.bt`;
       const res = await loginInWithEmailAndPassword(email, password);
-      debugger
       if (res?.user) {
         // Login successful logic
         setErrorMessage("");
         console.log({ res });
         sessionStorage.setItem("user", JSON.stringify(res?.user));
+        toast.success('You have successfully logged In');
         router.push("/dashboard");
       } else {
         setStudentId("");

@@ -5,18 +5,22 @@ import { auth, db } from "@/app/firebase/config";
 import { doc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import Loader from '@/components/loader';
+import toast from 'react-hot-toast';
 
 const SignUp = () => {
-  const [email, setEmail] = useState("");
-  const [student_id, setStudentId] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [student_id, setStudentId] = useState('');
+  const [name, setName] = useState('')
+  const [password, setPassword] = useState('');
   const [createUserWithEmailAndPassword, user, loading, error] =
     useCreateUserWithEmailAndPassword(auth);
   const [isFormValid, setIsFormValid] = useState(false);
-  const [err, setError] = useState("");
+  const [err, setError] = useState('');
+  const [loader, setLoader] = useState(false);
   const [touched, setTouched] = useState({
     email: false,
     student_id: false,
+    name: false,
     password: false,
   });
 
@@ -31,13 +35,14 @@ const SignUp = () => {
       emailPattern.test(email) &&
       email.trim() !== "" &&
       student_id.trim() !== "" &&
+      name.trim() !== "" &&
       password.trim() !== "";
     setIsFormValid(isValid);
   };
   
   useEffect(() => {
     validateForm();
-  }, [email, student_id, password]);
+  }, [email, student_id, name, password]);
 
   const handleSignUp = async () => {
     if (!isFormValid) {
@@ -45,17 +50,20 @@ const SignUp = () => {
       return;
     }
     try {
+      setLoader(true);
       const userCredential = await createUserWithEmailAndPassword(email, password); 
       const role = 'student'; // Default role for a new user
       const userDocRef = doc(db, 'user', userCredential?.user?.uid as any);
-      await setDoc(userDocRef, { student_id, email, role });
+      await setDoc(userDocRef, { student_id, email, name, role });
       sessionStorage.setItem("user", JSON.stringify(userCredential?.user));
+      toast.success('Signup has been successful!');
       userCredential?.user && router.push('/auth/login');
     } catch (e) { 
       setEmail('');
       setStudentId('');
       setPassword('');
-      setError("Registration failed. Try again.");
+    } finally {
+      setLoader(false);
     }
   };
 
@@ -69,6 +77,7 @@ const SignUp = () => {
   };
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      {loader && <Loader />}
       <div className="bg-white w-full max-w-md p-8 rounded-lg shadow-md">
         <div className="flex flex-col items-center mb-6">
           <img className="w-22 h-20 mb-2" src="/logo.png" alt="Logo" />
@@ -92,6 +101,21 @@ const SignUp = () => {
                 This field is required
               </p>
             )}
+          </div>
+          <div className='space-y-[8px]'>
+            <input
+                type="text"
+                placeholder="Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onFocus={() => handleFocus("name")}
+                className={`${touched.name && name.trim() === "" ? "border-red-500" : ""}`}
+              />
+              {touched.name && name.trim() === "" && (
+                <p className="mr-2 text-red-500 text-sm ml-[14px]">
+                  This field is required
+                </p>
+              )}
           </div>
           <div className="space-y-[8px]">
             <input
@@ -138,9 +162,7 @@ const SignUp = () => {
         >
           Register
         </button>
-        {loading && <Loader></Loader>}
-        {error && <p className="text-red-500 text-sm mt-4 text-center">{error.code === 'auth/email-already-in-use' ? 'The email is already in use' : error.message}</p>}
-        {err && <p className="text-red-500 text-sm mt-2 text-center">{err}</p>}
+        {(error || err) && <p className="text-red-500 text-sm mt-4 text-center">{error?.code === 'auth/email-already-in-use' ? 'The email is already in use' : err}</p>}
         <div className="mt-4 text-center">
           <p className="text-sm text-gray-600">
             Already have an account?{" "}

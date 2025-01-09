@@ -2,10 +2,8 @@ import { getDocs, collection, query, where } from "firebase/firestore";
 import { db } from './config';
 import { redirect } from 'next/navigation';
 
-const user = JSON.parse(sessionStorage.getItem('user') as string);
-
-
 export const fetchCurrentUserData = async () => {
+  const user = JSON.parse(sessionStorage.getItem('user') as string);
   // Handling the empty route here
   if (!user || !user.email) {
     redirect('/auth/login')

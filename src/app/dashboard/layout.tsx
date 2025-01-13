@@ -8,7 +8,7 @@ import Loader from '@/components/loader';
 
 export default function Layout({children} : {children: React.ReactNode}) {
     const userSession = sessionStorage.getItem('user');
-    const [userData, setUserData] = useState({ student_id: '', role: '' });
+    const [userData, setUserData] = useState({ student_id: '', role: '', name: ''});
     const [loading, setLoading] = useState(true);
     if (!userSession) {
         redirect('/auth/login')
@@ -47,7 +47,7 @@ export default function Layout({children} : {children: React.ReactNode}) {
             <Header userData={userData}/>
 
             {/* Page Content */}
-            <main className="flex-1 p-6">{children}</main>
+            <main className="flex-1 p-6 overflow-y-scroll h-[calc(100vh-30px)]">{children}</main>
           </div>
         </div>
     )

@@ -1,4 +1,4 @@
-export default function Header({userData}: {userData: { student_id: string; role: string }}) {
+export default function Header({userData}: {userData: { student_id: string; role: string, name: string }}) {
     const sessionUser = JSON.parse(sessionStorage.getItem('user') as string);
     const capitalizeFirstLetter = (str: string) => {
         if (!str) return str; // Check if the string is empty or null
@@ -31,10 +31,11 @@ export default function Header({userData}: {userData: { student_id: string; role
             </svg>
         </div>
         <div className='flex flex-col'>
-              <span className="text-gray-600 text-lg font-bold">{userData?.role === 'admin' ? sessionUser?.email : userData?.student_id}</span>
+              <span className="text-gray-600 text-lg font-bold">{userData?.role === 'admin' ? sessionUser?.email : userData?.name}</span>
               <span className="text-gray-600">{capitalizeFirstLetter(userData?.role)}</span>
             </div>
       </div>
     </header>
     )
 }
+

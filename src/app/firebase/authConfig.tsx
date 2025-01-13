@@ -19,6 +19,7 @@ export const fetchCurrentUserData = async () => {
       return {
         student_id: userDoc.data().student_id,
         role: userDoc.data().role,
+        name: userDoc.data().name
       };
     } else {
       throw new Error('No user found with the given email');

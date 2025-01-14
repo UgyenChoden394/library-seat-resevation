@@ -1,7 +1,7 @@
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-export default function AddSeatModal({isOpen, onClose, onSave, seat}: any) {
+export default function AddSeatModal({isOpen, onClose, onSave, seat}: any) { debugger
     const [seatData, setSeatData] = useState(
         seat || { seatNumber: '', floorNo: '', tableNo: '', status: '', imageUrl: '' }
       );
@@ -9,10 +9,14 @@ export default function AddSeatModal({isOpen, onClose, onSave, seat}: any) {
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [isFormValid, setIsFormValid] = useState(false);
 
+    const initialSeatData = useRef(seat || { seatNumber: '', floorNo: '', tableNo: '', status: '', imageUrl: '' });
+
+
     useEffect(() => {
       if (seat) { 
         setSeatData(seat);
         setPreviewImage(seat.imageUrl || null); // Use existing image URL for preview
+        initialSeatData.current = seat; 
       } else {
         setSeatData({
           seatNumber: '',
@@ -23,6 +27,7 @@ export default function AddSeatModal({isOpen, onClose, onSave, seat}: any) {
         });
         setPreviewImage(null);
         setImageFile(null);
+        initialSeatData.current = { seatNumber: '', floorNo: '', tableNo: '', status: '', imageUrl: '' };
       }
     }, [seat]);
 
@@ -31,14 +36,13 @@ export default function AddSeatModal({isOpen, onClose, onSave, seat}: any) {
         seatData?.seatNumber?.trim() !== '' &&
         seatData?.floorNo?.trim() !== '' &&
         seatData?.tableNo?.trim() !== '' &&
-        seatData?.status?.trim() !== '' && 
         imageFile !== null;
     setIsFormValid(isValid);
     }, [seatData]);
     
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setSeatData({ ...seatData, [e.target.name]: e.target.value });
+      setSeatData({ ...seatData, [e.target.name]: e.target.value });
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,18 +65,18 @@ export default function AddSeatModal({isOpen, onClose, onSave, seat}: any) {
       });
     };
 
-    const handleSubmit = async () => { debugger
+    const handleSubmit = async () => {
       if (!imageFile && !seat.imageUrl) {
         console.log('Please select an image file');
         return;
       }
 
       try {
-
         const uploadedImageUrl = imageFile !== null ? await handleImageUpload(imageFile) : seat?.imageUrl || '';
         // const uploadedImageUrl = await handleImageUpload(imageFile || seat.imageUrl); // Upload the image to Firebase
-        const updatedSeatData = { ...seatData, imageUrl: uploadedImageUrl }; // Add image URL to seat data
-    
+        const status = seat?.status ? seat?.status : 'available';
+        const updatedSeatData = { ...seatData, imageUrl: uploadedImageUrl, status : status }; // Add image URL to seat data
+
         onSave(updatedSeatData); // Save the updated seat data
         onClose(); // Close the modal
       } catch (error) {
@@ -82,10 +86,33 @@ export default function AddSeatModal({isOpen, onClose, onSave, seat}: any) {
       }
     };
 
+    const handleReset = () => {
+      // Reset to initial values
+      setSeatData(initialSeatData.current);
+      setPreviewImage(initialSeatData.current.imageUrl || null);
+      setImageFile(null);
+    };
+
     return isOpen ? (
         <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center'>
           <div className='bg-white p-6 rounded shadow-lg w-1/3'>
             <h2 className='text-xl font-bold mb-4'>{seat ? 'Edit Seat' : 'Add Seat'}</h2>
+            {/* Image Upload Section */}
+            <div className='mb-4'>
+                <label className='block text-gray-700 mb-2'>Room Image</label>
+                <input
+                  type='file'
+                  accept='image/*'
+                  onChange={handleFileChange}
+                  className='w-full p-2 border rounded'
+                />
+                {previewImage && (
+                  <div className='mt-4'>
+                    <p className='text-sm text-gray-600 mb-2'>Preview:</p>
+                    <img src={previewImage} alt='Preview' className='w-[200px] rounded' />
+                  </div>
+                )}
+            </div>
             <input
               type='text'
               name='seatNumber'
@@ -110,45 +137,20 @@ export default function AddSeatModal({isOpen, onClose, onSave, seat}: any) {
               placeholder='Table'
               className='w-full mb-4 p-2 border rounded'
             />
-            <select
-              name='status'
-              value={seatData.status}
-              onChange={handleChange}
-              className='w-full mb-4 p-2 border rounded'
-            >
-               <option value='' disabled>
-                   -- Select Status --
-              </option>
-              <option value='available'>Available</option>
-              <option value='reserved'>Reserved</option>
-            </select>
-            {/* Image Upload Section */}
-              <div className='mb-4'>
-                <label className='block text-gray-700 mb-2'>Room Image</label>
-                <input
-                  type='file'
-                  accept='image/*'
-                  onChange={handleFileChange}
-                  className='w-full p-2 border rounded'
-                />
-                {previewImage && (
-                  <div className='mt-4'>
-                    <p className='text-sm text-gray-600 mb-2'>Preview:</p>
-                    <img src={previewImage} alt='Preview' className='w-[200px] rounded' />
-                  </div>
-                )}
-              </div>
             <div className='flex justify-end'>
-              <button className='text-blue-500 px-4 py-2 rounded-xl border border-blue-500 mr-2' onClick={onClose}>
+              <button className='text-blue-500 px-4 py-2 rounded-xl border border-blue-500 mr-2' onClick={ () => {
+                handleReset();
+                onClose()
+              }}>
                 Cancel
               </button>
               <button disabled={!seat ? !isFormValid : false}
                 className={`px-4 py-2 rounded-xl ${
-                  !seat ? !isFormValid : true ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  isFormValid || seat ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
                 onClick={handleSubmit}
               >
-                Save
+                {seat?.id ? 'Update' : 'Add'}
               </button>
             </div>
           </div>

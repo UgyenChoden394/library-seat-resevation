@@ -51,7 +51,8 @@ export default function Dashboard() {
           )
         );
       } else {
-        const docRef = await addSeat(seatData);
+        const saveSeatData = {...seatData, userName: '', userId: '', startTime: '', endTime: '',}
+        const docRef = await addSeat(saveSeatData);
         setSeats([...seatLists, { id: docRef.id, ...seatData }]);
         toast.success('Seat Added Succesfully!')
       }

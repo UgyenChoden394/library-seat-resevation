@@ -1,7 +1,7 @@
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 import { useEffect, useRef, useState } from 'react';
 
-export default function AddSeatModal({isOpen, onClose, onSave, seat}: any) { debugger
+export default function AddSeatModal({isOpen, onClose, onSave, seat}: any) {
     const [seatData, setSeatData] = useState(
         seat || { seatNumber: '', floorNo: '', tableNo: '', status: '', imageUrl: '' }
       );

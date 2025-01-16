@@ -17,9 +17,11 @@ export const fetchCurrentUserData = async () => {
     if (!querySnapshot.empty) {
       const userDoc = querySnapshot.docs[0]; // Get the first document (assuming emails are unique)
       return {
+        id: userDoc.id,
         student_id: userDoc.data().student_id,
         role: userDoc.data().role,
-        name: userDoc.data().name
+        name: userDoc.data().name,
+        email: userDoc.data().email
       };
     } else {
       throw new Error('No user found with the given email');

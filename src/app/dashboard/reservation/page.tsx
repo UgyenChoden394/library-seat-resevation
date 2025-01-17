@@ -55,7 +55,7 @@ export default function Dashboard() {
           userName: user.name ? user.name : 'Admin',
           userId: user.id || '',
           startTime: new Date().toISOString(),
-          endTime: null,
+          endTime: null
         };
         await updateSeat(selectedSeat.id, updatedSeat); 
         setSeats((prevSeats) =>
@@ -70,7 +70,7 @@ export default function Dashboard() {
           status: 'available',
           userName: null,
           userId: user.id || '',
-          endTime: new Date().toISOString(),
+          endTime: new Date().toISOString()
         };
         await updateSeat(selectedSeat.id, updatedSeat); // Update seat in Firestore
         setSeats((prevSeats) =>
@@ -123,8 +123,8 @@ export default function Dashboard() {
                     ? format(new Date(seat.startTime), "hh:mm:ss a, MMM dd, yyyy") 
                   : '-'}
                 </td>
-                <td className='py-2 px-4 text-left'> {seat?.startTime && !isNaN(new Date(seat.startTime).getTime()) 
-                    ? format(new Date(seat.startTime), "hh:mm:ss a, MMM dd, yyyy") : '-'}
+                <td className='py-2 px-4 text-left'> {seat?.endTime && !isNaN(new Date(seat.endTime).getTime()) 
+                    ? format(new Date(seat.endTime), "hh:mm:ss a, MMM dd, yyyy") : '-'}
                 </td>
                 <td className='py-6'>
                   <p className={`p-1 font-bold text-center rounded-full w-[70%] 
